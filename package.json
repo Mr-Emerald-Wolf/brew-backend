@@ -1,0 +1,19 @@
+{
+  "name": "brew-backend",
+  "version": "1.0.0",
+  "description": "Backend for web app Brew",
+  "main": "index.js",
+  "scripts": {
+    "test": "npm start"
+  },
+  "keywords": [
+    "brew",
+    "review",
+    "coffee"
+  ],
+  "author": "Shivam Sharma",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.18.1"
+  }
+}
