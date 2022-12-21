@@ -4,7 +4,11 @@
   "description": "Backend for web app Brew",
   "main": "index.js",
   "scripts": {
-    "test": "npm start"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js",
+    "db:reset": "npx sequelize-cli db:drop && npx sequelize-cli db:create && npx sequelize-cli db:migrate && npx sequelize-cli db:seed:all",
+    "migrate:up": " --url 'postgresql://postgres:k6GYMi8TYGcuhChZNhYb@containers-us-west-31.railway.app:6099/railway'",
+    "build": ""
   },
   "keywords": [
     "brew",
@@ -23,6 +27,7 @@
     "yarn": "^1.22.19"
   },
   "devDependencies": {
-    "nodemon": "^2.0.19"
+    "nodemon": "^2.0.19",
+    "sequelize-cli": "^6.5.2"
   }
 }
