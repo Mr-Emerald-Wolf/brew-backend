@@ -10,7 +10,9 @@ import (
 type IUserService interface {
 	CreateUser(req.UserCreateRequest) (*res.UserResponse, error)
 	FindAllUsers() (*[]res.UserResponse, error)
-	FindUser(uuid string) (*res.UserResponse, error)
+	FindUser(string) (*res.UserResponse, error)
+	UpdateUser(string, req.UserUpdateRequest) (*res.UserResponse, error)
+	DeleteUser(string) error
 }
 
 type UserService struct {
@@ -53,4 +55,23 @@ func (us UserService) FindAllUsers() (*[]res.UserResponse, error) {
 	}
 
 	return &response, nil
+}
+
+func (us UserService) UpdateUser(uuid string, u req.UserUpdateRequest) (*res.UserResponse, error) {
+
+	user := u.ToDomain()
+
+	updatedUser, err := us.r.Update(uuid, user)
+	if err != nil {
+		return nil, err
+	}
+
+	response := updatedUser.ToDTO()
+
+	return &response, nil
+}
+
+func (us UserService) DeleteUser(uuid string) error {
+	err := us.r.Delete(uuid)
+	return err
 }

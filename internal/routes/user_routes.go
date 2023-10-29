@@ -14,7 +14,9 @@ func CreateUserRoutes(app *fiber.App) {
 
 	incomingRoutes := app.Group("/users")
 
-	incomingRoutes.Get("/:uuid", UserHandler.GetUser)
 	incomingRoutes.Post("/", UserHandler.NewUser)
+	incomingRoutes.Get("/:uuid", UserHandler.GetUser)
 	incomingRoutes.Get("/all", UserHandler.GetAllUsers)
+	incomingRoutes.Patch("/:uuid", UserHandler.UpdateUser)
+	incomingRoutes.Delete("/:uuid", UserHandler.DeleteUser)
 }

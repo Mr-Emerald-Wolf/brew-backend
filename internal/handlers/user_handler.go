@@ -11,6 +11,8 @@ type IUserHandler interface {
 	NewCustomer(*fiber.Ctx) error
 	GetAllCustomers(*fiber.Ctx) error
 	GetCustomer(*fiber.Ctx) error
+	UpdateUser(*fiber.Ctx) error
+	DeleteUser(*fiber.Ctx) error
 }
 
 type UserHandler struct {
@@ -64,8 +66,46 @@ func (uh *UserHandler) GetUser(c *fiber.Ctx) error {
 
 	user, err := uh.service.FindUser(uuid)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(err)
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"status": "false", "error": err.Error()})
 	}
 
 	return c.Status(fiber.StatusOK).JSON(user)
+}
+
+func (uh *UserHandler) UpdateUser(c *fiber.Ctx) error {
+	uuid := c.Params("uuid")
+
+	var payload req.UserUpdateRequest
+	err := c.BodyParser(&payload)
+
+	if err != nil {
+		c.Status(fiber.StatusBadRequest).JSON(err)
+		return err
+	}
+
+	errors := utils.ValidateStruct(payload)
+	if errors != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(errors)
+
+	}
+
+	response, err := uh.service.UpdateUser(uuid, payload)
+
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(err)
+	}
+
+	return c.Status(fiber.StatusOK).JSON(response)
+}
+
+func (uh *UserHandler) DeleteUser(c *fiber.Ctx) error {
+
+	uuid := c.Params("uuid")
+
+	err := uh.service.DeleteUser(uuid)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(err)
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{"status": true, "message": "User Deleted"})
 }
