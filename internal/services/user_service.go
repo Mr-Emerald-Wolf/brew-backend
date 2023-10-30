@@ -3,7 +3,6 @@ package services
 import (
 	req "github.com/mr-emerald-wolf/brew-backend/internal/dto/request"
 	res "github.com/mr-emerald-wolf/brew-backend/internal/dto/response"
-
 	"github.com/mr-emerald-wolf/brew-backend/internal/repository"
 )
 
@@ -25,10 +24,20 @@ func NewUserService(repo repository.UserRepository) UserService {
 
 func (us UserService) CreateUser(u req.UserCreateRequest) (*res.UserResponse, error) {
 	user := u.ToDomain()
+
+	// Hash the user's password before storing it in the database
+	hashedPassword, err := hashPassword(u.Password)
+	if err != nil {
+		return nil, err
+	}
+
+	user.Password = hashedPassword
+
 	newUser, err := us.r.Create(user)
 	if err != nil {
 		return nil, err
 	}
+
 	response := newUser.ToDTO()
 
 	return &response, nil

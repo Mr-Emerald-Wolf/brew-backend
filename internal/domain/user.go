@@ -10,10 +10,17 @@ import (
 
 type User struct {
 	gorm.Model
-	UUID  uuid.UUID `gorm:"type:uuid;default:gen_random_uuid()"`
-	Name  string    `gorm:"type:varchar(255);not null"`
-	Email string    `gorm:"type:varchar(255);not null"`
-	Phone string    `gorm:"type:varchar(255);not null"`
+	UUID         uuid.UUID `gorm:"type:uuid;default:gen_random_uuid()"`
+	Name         string    `gorm:"type:varchar(255);not null"`
+	Email        string    `gorm:"type:varchar(255);unique;not null"`
+	Phone        string    `gorm:"type:varchar(255);not null"`
+	Password     string    `gorm:"type:varchar(255);not null"`
+	RefreshToken string    `gorm:"type:varchar(255)"`
+}
+
+type TokenPayload struct {
+	Id   uuid.UUID
+	Role string
 }
 
 func (u User) ToDTO() dto.UserResponse {

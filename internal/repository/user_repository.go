@@ -54,9 +54,18 @@ func (ur UserRepository) Update(uuid string, update domain.User) (*domain.User, 
 	}
 
 	// Update user fields with the new data
-	user.Name = update.Name
-	user.Phone = update.Phone
-	user.Email = update.Email
+	if update.Name != "" {
+		user.Name = update.Name
+	}
+	if update.Phone != "" {
+		user.Phone = update.Phone
+	}
+	if update.Email != "" {
+		user.Email = update.Email
+	}
+	if update.RefreshToken != "" {
+		user.RefreshToken = update.RefreshToken
+	}
 
 	err = ur.db.Save(&user).Error
 	if err != nil {
@@ -80,4 +89,26 @@ func (ur UserRepository) Delete(uuid string) error {
 	}
 
 	return nil
+}
+
+func (ur UserRepository) FindByEmail(email string) (*domain.User, error) {
+	var user domain.User
+	err := ur.db.Where("email = ?", email).First(&user).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &user, nil
+}
+
+func (ur UserRepository) FindByRefresh(token string) (*domain.User, error) {
+	var user domain.User
+	err := ur.db.Where("refresh_token = ?", token).First(&user).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &user, nil
 }

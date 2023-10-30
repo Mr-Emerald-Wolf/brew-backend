@@ -13,10 +13,10 @@ import (
 )
 
 func Start() {
-	
+
 	database.InitializeDB()
 	migrations.RunMigrations()
-	
+
 	app := fiber.New()
 
 	app.Use(logger.New())
@@ -39,6 +39,7 @@ func Start() {
 	})
 
 	routes.CreateUserRoutes(app)
+	routes.CreateAuthRoutes(app)
 
 	app.Use(func(c *fiber.Ctx) error {
 		return c.Status(404).JSON(fiber.Map{
@@ -46,7 +47,6 @@ func Start() {
 			"message": "Route not found",
 		})
 	})
-
 
 	log.Fatal(app.Listen("localhost:8000"))
 }
