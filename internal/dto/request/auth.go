@@ -1,6 +1,8 @@
 package dto
 
-import "github.com/mr-emerald-wolf/brew-backend/internal/domain"
+import (
+	"github.com/mr-emerald-wolf/brew-backend/internal/db"
+)
 
 type AuthRequest struct {
 	Email    string `json:"email" validate:"required,email"`
@@ -11,9 +13,9 @@ type RefreshRequest struct {
 	RefreshToken string `json:"refresh_token" validate:"required"`
 }
 
-func (u AuthRequest) ToDomain() domain.User {
-	return domain.User{
-		Email:    u.Email,
-		Password: u.Password,
+func (u AuthRequest) ToDomain() db.User {
+	return db.User{
+		Email:        u.Email,
+		PasswordHash: u.Password,
 	}
 }

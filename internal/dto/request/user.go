@@ -1,8 +1,7 @@
 package dto
 
 import (
-	"github.com/google/uuid"
-	"github.com/mr-emerald-wolf/brew-backend/internal/domain"
+	"github.com/mr-emerald-wolf/brew-backend/internal/db"
 )
 
 type UserCreateRequest struct {
@@ -19,21 +18,20 @@ type UserUpdateRequest struct {
 	Password string `json:"password"`
 }
 
-func (u UserCreateRequest) ToDomain() domain.User {
-	return domain.User{
-		UUID:     uuid.New(),
-		Name:     u.Name,
-		Phone:    u.Phone,
-		Email:    u.Email,
-		Password: u.Password,
+func (u UserCreateRequest) ToDomain() db.User {
+	return db.User{
+		Name:         u.Name,
+		Phone:        u.Phone,
+		Email:        u.Email,
+		PasswordHash: u.Password,
 	}
 }
 
-func (u UserUpdateRequest) ToDomain() domain.User {
-	return domain.User{
-		Name:     u.Name,
-		Phone:    u.Phone,
-		Email:    u.Email,
-		Password: u.Password,
+func (u UserUpdateRequest) ToDomain() db.User {
+	return db.User{
+		Name:         u.Name,
+		Phone:        u.Phone,
+		Email:        u.Email,
+		PasswordHash: u.Password,
 	}
 }

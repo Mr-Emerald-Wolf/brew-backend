@@ -2,15 +2,14 @@ package routes
 
 import (
 	"github.com/gofiber/fiber/v2"
+	"github.com/mr-emerald-wolf/brew-backend/database"
 	"github.com/mr-emerald-wolf/brew-backend/internal/handlers"
 	"github.com/mr-emerald-wolf/brew-backend/internal/middleware"
-	"github.com/mr-emerald-wolf/brew-backend/internal/repository"
 	"github.com/mr-emerald-wolf/brew-backend/internal/services"
 )
 
 func CreateUserRoutes(app *fiber.App) {
-	UserRepository := repository.NewUserRepository()
-	UserService := services.NewUserService(UserRepository)
+	UserService := services.NewUserService(database.DB)
 	UserHandler := handlers.NewUserHandler(UserService)
 
 	incomingRoutes := app.Group("/users")

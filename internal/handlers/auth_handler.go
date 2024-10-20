@@ -9,7 +9,7 @@ import (
 
 type IAuthHandler interface {
 	Login(*fiber.Ctx) error
-	// Logout(*fiber.Ctx) error
+	Logout(*fiber.Ctx) error
 	Refresh(*fiber.Ctx) error
 }
 
@@ -47,7 +47,7 @@ func (ah AuthHandler) Login(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(response)
 }
 
-func (ah AuthHandler) Logout() {}
+func (ah AuthHandler) Logout() error { return nil }
 
 func (ah AuthHandler) Refresh(c *fiber.Ctx) error {
 	var payload req.RefreshRequest
