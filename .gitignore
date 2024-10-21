@@ -23,3 +23,4 @@ tmp
 .env
 main
 /postgres_data/
+tmp/

@@ -2,13 +2,14 @@ package middleware
 
 import (
 	"context"
-	"database/sql"
 	"errors"
+	"fmt"
 	"os"
 
 	jwtware "github.com/gofiber/contrib/jwt"
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/jackc/pgx/v5"
 	"github.com/mr-emerald-wolf/brew-backend/database"
 )
 
@@ -40,12 +41,16 @@ func CheckUser(c *fiber.Ctx) error {
 	email := claims["sub"].(string)
 	user, err := database.DB.GetUserByEmail(context.Background(), email)
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
+		if errors.Is(err, pgx.ErrNoRows) {
 			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-				"message": "user does not exist",
-				"status":  false,
+				"error":  "user does not exist",
+				"status": false,
 			})
 		}
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error":  fmt.Sprintf("find user: %v", err),
+			"status": false,
+		})
 	}
 	c.Locals("user", user.Uuid)
 	return c.Next()

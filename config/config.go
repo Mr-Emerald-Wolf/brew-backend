@@ -21,6 +21,7 @@ type DatabaseConfig struct {
 type RedisConfig struct {
 	DB             int    `mapstructure:"REDIS_DB"`
 	REDIS_HOST     string `mapstructure:"REDIS_HOST"`
+	REDIS_PORT     string `mapstructure:"REDIS_PORT"`
 	REDIS_PASSWORD string `mapstructure:"REDIS_PASSWORD"`
 }
 
@@ -55,6 +56,7 @@ func LoadConfig() *Config {
 		RedisConfig: RedisConfig{
 			DB:             redisDB,
 			REDIS_HOST:     os.Getenv("REDIS_HOST"),
+			REDIS_PORT:     os.Getenv("REDIS_PORT"),
 			REDIS_PASSWORD: os.Getenv("REDIS_PASSWORD"),
 		},
 		// AWSConfig: AWSConfig{

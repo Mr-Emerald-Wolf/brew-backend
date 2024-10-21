@@ -2,6 +2,8 @@ package handlers
 
 import (
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 	req "github.com/mr-emerald-wolf/brew-backend/internal/dto/request"
 	"github.com/mr-emerald-wolf/brew-backend/internal/services"
 	"github.com/mr-emerald-wolf/brew-backend/internal/utils"
@@ -61,9 +63,15 @@ func (uh *UserHandler) GetAllUsers(c *fiber.Ctx) error {
 
 func (uh *UserHandler) GetUser(c *fiber.Ctx) error {
 
-	uuid := c.Params("uuid")
+	user_uuid := c.Params("uuid")
+	parsedUUID, err := uuid.Parse(user_uuid)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"status": "false", "error": err.Error()})
+	}
 
-	user, err := uh.service.FindUser(uuid)
+	pgUUID := pgtype.UUID{Bytes: parsedUUID, Valid: true}
+
+	user, err := uh.service.FindUser(pgUUID)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"status": "false", "error": err.Error()})
 	}
@@ -72,7 +80,7 @@ func (uh *UserHandler) GetUser(c *fiber.Ctx) error {
 }
 
 func (uh *UserHandler) UpdateUser(c *fiber.Ctx) error {
-	uuid := c.Locals("user").(string)
+	uuid := c.Locals("user").(pgtype.UUID)
 
 	var payload req.UserUpdateRequest
 	err := c.BodyParser(&payload)
@@ -99,7 +107,7 @@ func (uh *UserHandler) UpdateUser(c *fiber.Ctx) error {
 
 func (uh *UserHandler) DeleteUser(c *fiber.Ctx) error {
 
-	uuid := c.Locals("user").(string)
+	uuid := c.Locals("user").(pgtype.UUID)
 
 	err := uh.service.DeleteUser(uuid)
 	if err != nil {
@@ -111,7 +119,7 @@ func (uh *UserHandler) DeleteUser(c *fiber.Ctx) error {
 
 func (uh *UserHandler) Me(c *fiber.Ctx) error {
 
-	uuid := c.Locals("user").(string)
+	uuid := c.Locals("user").(pgtype.UUID)
 
 	user, err := uh.service.FindUser(uuid)
 	if err != nil {

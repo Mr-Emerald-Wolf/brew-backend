@@ -16,9 +16,9 @@ func CreateUserRoutes(app *fiber.App) {
 
 	incomingRoutes.Post("/", UserHandler.NewUser)
 
-	incomingRoutes.Use(middleware.Protected)
+	incomingRoutes.Use(middleware.Protected())
 	incomingRoutes.Use(middleware.CheckUser)
-	
+
 	incomingRoutes.Get("/all", UserHandler.GetAllUsers)
 	incomingRoutes.Get("/me", UserHandler.Me)
 	incomingRoutes.Patch("/", UserHandler.UpdateUser)

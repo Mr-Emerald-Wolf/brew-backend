@@ -8,15 +8,17 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	_ "github.com/joho/godotenv/autoload"
+	"github.com/mr-emerald-wolf/brew-backend/config"
+	"github.com/mr-emerald-wolf/brew-backend/database"
 	"github.com/mr-emerald-wolf/brew-backend/internal/routes"
 )
 
 func init() {
 
-	// config.CheckEnv()
-	// cfg := config.LoadConfig()
-	// database.InitDB(cfg.DatabaseConfig)
-	// database.NewRepository(cfg.RedisConfig)
+	config.CheckEnv()
+	cfg := config.LoadConfig()
+	database.InitDB(cfg.DatabaseConfig)
+	database.InitRedis(cfg.RedisConfig)
 	// s3handler.InitializeS3Session(cfg.AWSConfig)
 }
 func main() {

@@ -2,10 +2,13 @@ package services
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"os"
 	"time"
 
-	"github.com/golang-jwt/jwt"
+	"github.com/golang-jwt/jwt/v5"
+	"github.com/jackc/pgx/v5"
 	"github.com/mr-emerald-wolf/brew-backend/internal/db"
 	req "github.com/mr-emerald-wolf/brew-backend/internal/dto/request"
 	res "github.com/mr-emerald-wolf/brew-backend/internal/dto/response"
@@ -38,7 +41,9 @@ func NewAuthService(repo *db.Queries) AuthService {
 func (as AuthService) LoginUser(loginRequest req.AuthRequest) (*res.AuthResponse, error) {
 	// Retrieve the user by email
 	user, err := as.repo.GetUserByEmail(context.Background(), loginRequest.Email)
-	if err != nil {
+	if err != nil && errors.Is(err, pgx.ErrNoRows) {
+		return nil, fmt.Errorf("user does not exist: %s", loginRequest.Email)
+	} else if err != nil {
 		return nil, err
 	}
 
@@ -63,7 +68,35 @@ func (as AuthService) LoginUser(loginRequest req.AuthRequest) (*res.AuthResponse
 }
 
 func (as AuthService) RefreshToken(rf req.RefreshRequest) (*res.RefreshResponse, error) {
-	return nil, nil
+
+	token, err := jwt.Parse(rf.RefreshToken, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+		}
+		return []byte(os.Getenv("REFRESH_SECRET_KEY")), nil
+	})
+
+	// Handle token validation errors
+	if err != nil || !token.Valid {
+		return nil, fmt.Errorf("jwt error: %s", err.Error())
+	}
+
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		return nil, fmt.Errorf("jwt error: could not parse claims")
+	}
+
+	// Create accessToken
+	accessToken, err := CreateToken(claims["sub"].(string), ACCESS_TOKEN)
+	if err != nil {
+		return nil, fmt.Errorf("jwt error: %s", err.Error())
+	}
+
+	response := res.RefreshResponse{
+		AccessToken: accessToken,
+	}
+
+	return &response, nil
 }
 
 func (as AuthService) LogoutUser(uuid string) error {
@@ -82,11 +115,11 @@ func hashPassword(password string) (string, error) {
 
 func CreateToken(email string, tokenType TokenType) (string, error) {
 
-	secret := []byte(os.Getenv("ACCESS_TOKEN_SECRET"))
+	secret := []byte(os.Getenv("ACCESS_SECRET_KEY"))
 	expiry := time.Now().Add(time.Minute * 15).Unix()
 
 	if tokenType != ACCESS_TOKEN {
-		secret = []byte(os.Getenv("REFRESH_TOKEN_SECRET"))
+		secret = []byte(os.Getenv("REFRESH_SECRET_KEY"))
 		expiry = time.Now().Add(time.Hour).Unix()
 	}
 

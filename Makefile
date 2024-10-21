@@ -5,7 +5,10 @@ DOCKER_COMPOSE = docker compose
 DB_URI = "postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@localhost:6500/${POSTGRES_DB}?sslmode=disable"
 
 # Targets
-.PHONY: build up down logs restart clean migrate-up inspect-db
+.PHONY: dev build up down logs restart clean migrate-up inspect-db
+
+dev:
+	air -c air.toml
 
 build:
 	$(DOCKER_COMPOSE) up --build -d

@@ -2,6 +2,7 @@ package database
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"time"
 
@@ -15,10 +16,10 @@ type RedisRepository struct {
 
 var RedisClient *RedisRepository
 
-func NewRepository(redisConfig config.RedisConfig) {
+func InitRedis(redisConfig config.RedisConfig) {
 
 	client := redis.NewClient(&redis.Options{
-		Addr:     redisConfig.REDIS_HOST,
+		Addr:     fmt.Sprintf("%s:%s", redisConfig.REDIS_HOST, redisConfig.REDIS_PORT),
 		Password: redisConfig.REDIS_PASSWORD,
 		DB:       0,
 	})

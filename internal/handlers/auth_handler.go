@@ -41,7 +41,7 @@ func (ah AuthHandler) Login(c *fiber.Ctx) error {
 	response, err := ah.service.LoginUser(payload)
 
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(errors)
+		return c.Status(fiber.StatusBadRequest).JSON(err.Error())
 	}
 
 	return c.Status(fiber.StatusOK).JSON(response)
@@ -66,9 +66,8 @@ func (ah AuthHandler) Refresh(c *fiber.Ctx) error {
 
 	response, err := ah.service.RefreshToken(payload)
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(errors)
+		return c.Status(fiber.StatusBadRequest).JSON(err.Error())
 	}
 
 	return c.Status(fiber.StatusOK).JSON(response)
-
 }

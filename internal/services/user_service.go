@@ -2,9 +2,10 @@ package services
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
-	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/mr-emerald-wolf/brew-backend/internal/db"
 	req "github.com/mr-emerald-wolf/brew-backend/internal/dto/request"
@@ -14,9 +15,9 @@ import (
 type IUserService interface {
 	CreateUser(req.UserCreateRequest) (*res.UserResponse, error)
 	FindAllUsers() ([]res.UserResponse, error)
-	FindUser(string) (*res.UserResponse, error)
-	UpdateUser(string, req.UserUpdateRequest) (*res.UserResponse, error)
-	DeleteUser(string) error
+	FindUser(pgtype.UUID) (*res.UserResponse, error)
+	UpdateUser(pgtype.UUID, req.UserUpdateRequest) (*res.UserResponse, error)
+	DeleteUser(pgtype.UUID) error
 }
 
 type UserService struct {
@@ -47,17 +48,15 @@ func (us *UserService) CreateUser(r req.UserCreateRequest) (*res.UserResponse, e
 	return &response, nil
 }
 
-func (us *UserService) FindUser(uuidStr string) (*res.UserResponse, error) {
-	parsedUUID, err := uuid.Parse(uuidStr)
-	if err != nil {
-		return nil, fmt.Errorf("parse UUID: %w", err)
-	}
+func (us *UserService) FindUser(uuid pgtype.UUID) (*res.UserResponse, error) {
 
-	pgUUID := pgtype.UUID{Bytes: parsedUUID, Valid: true}
-
-	user, err := us.repo.GetUserByUUID(context.Background(), pgUUID)
+	user, err := us.repo.GetUserByUUID(context.Background(), uuid)
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, fmt.Errorf("no user found")
+		}
 		return nil, fmt.Errorf("find user: %w", err)
+
 	}
 
 	response := res.ToUserDTO(user)
@@ -78,16 +77,10 @@ func (us *UserService) FindAllUsers() ([]res.UserResponse, error) {
 	return response, nil
 }
 
-func (us *UserService) UpdateUser(uuidStr string, r req.UserUpdateRequest) (*res.UserResponse, error) {
-	parsedUUID, err := uuid.Parse(uuidStr)
-	if err != nil {
-		return nil, fmt.Errorf("parse UUID: %w", err)
-	}
-
-	pgUUID := pgtype.UUID{Bytes: parsedUUID, Valid: true}
+func (us *UserService) UpdateUser(uuid pgtype.UUID, r req.UserUpdateRequest) (*res.UserResponse, error) {
 
 	user, err := us.repo.UpdateUser(context.Background(), db.UpdateUserParams{
-		Uuid:  pgUUID,
+		Uuid:  uuid,
 		Name:  r.Name,
 		Email: r.Email,
 		Phone: r.Phone,
@@ -100,15 +93,9 @@ func (us *UserService) UpdateUser(uuidStr string, r req.UserUpdateRequest) (*res
 	return &response, nil
 }
 
-func (us *UserService) DeleteUser(uuidStr string) error {
-	parsedUUID, err := uuid.Parse(uuidStr)
-	if err != nil {
-		return fmt.Errorf("parse UUID: %w", err)
-	}
+func (us *UserService) DeleteUser(uuid pgtype.UUID) error {
 
-	pgUUID := pgtype.UUID{Bytes: parsedUUID, Valid: true}
-
-	if err := us.repo.DeleteUser(context.Background(), pgUUID); err != nil {
+	if err := us.repo.DeleteUser(context.Background(), uuid); err != nil {
 		return fmt.Errorf("delete user: %w", err)
 	}
 
