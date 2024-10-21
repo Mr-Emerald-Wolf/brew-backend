@@ -41,9 +41,7 @@ func (cs *CoffeeService) CreateCoffee(r req.CoffeeCreateRequest, userID int32) (
 		return nil, fmt.Errorf("failed to create coffee: %w", err)
 	}
 
-	// Convert the db.Coffee object to a response DTO
 	response := res.ToCoffeeDTO(newCoffee)
-
 	return &response, nil
 }
 

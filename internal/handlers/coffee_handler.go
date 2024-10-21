@@ -2,24 +2,36 @@ package handlers
 
 import (
 	"github.com/gofiber/fiber/v2"
+	"github.com/mr-emerald-wolf/brew-backend/internal/db"
 	req "github.com/mr-emerald-wolf/brew-backend/internal/dto/request"
 	"github.com/mr-emerald-wolf/brew-backend/internal/services"
 	"github.com/mr-emerald-wolf/brew-backend/internal/utils"
 )
 
+type ICoffeeHandler interface {
+	NewCoffee(c *fiber.Ctx) error
+	GetAllCoffees(c *fiber.Ctx) error
+	GetCoffee(c *fiber.Ctx) error
+	UpdateCoffee(c *fiber.Ctx) error
+	DeleteCoffee(c *fiber.Ctx) error
+}
+
 type CoffeeHandler struct {
 	service services.ICoffeeService
 }
 
-func NewCoffeeHandler(cs services.ICoffeeService) CoffeeHandler {
-	return CoffeeHandler{
+func NewCoffeeHandler(cs services.ICoffeeService) ICoffeeHandler {
+	return &CoffeeHandler{
 		service: cs,
 	}
 }
 
 func (ch *CoffeeHandler) NewCoffee(c *fiber.Ctx) error {
-	// Extract user ID from the request, for example, from the authentication token or session.
-	// userID := "user_id_placeholder"
+
+	user, ok := c.Locals("user").(db.User)
+	if !ok {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"status": false, "error": "failed to parse user"})
+	}
 
 	var payload req.CoffeeCreateRequest
 	err := c.BodyParser(&payload)
@@ -33,7 +45,7 @@ func (ch *CoffeeHandler) NewCoffee(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"status": false, "error": errors})
 	}
 
-	response, err := ch.service.CreateCoffee(payload)
+	response, err := ch.service.CreateCoffee(payload, user.ID)
 
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"status": false, "error": err.Error()})

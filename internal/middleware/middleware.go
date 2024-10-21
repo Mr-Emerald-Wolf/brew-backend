@@ -52,8 +52,6 @@ func CheckUser(c *fiber.Ctx) error {
 			"status": false,
 		})
 	}
-	c.Locals("user", user.Uuid)
-	c.Locals("email", user.Email)
-
+	c.Locals("user", user)
 	return c.Next()
 }

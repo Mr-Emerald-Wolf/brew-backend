@@ -5,7 +5,6 @@ import (
 )
 
 type CoffeeCreateRequest struct {
-	UserID  int32  `json:"user" validate:"required"`
 	Name    string `json:"name" validate:"required"`
 	Origin  string `json:"origin" validate:"required"`
 	Roast   string `json:"roast" validate:"required"`
@@ -23,7 +22,6 @@ type CoffeeUpdateRequest struct {
 
 func (c CoffeeCreateRequest) ToDomain() db.Coffee {
 	return db.Coffee{
-		UserID:  c.UserID,
 		Name:    c.Name,
 		Origin:  c.Origin,
 		Roast:   c.Roast,

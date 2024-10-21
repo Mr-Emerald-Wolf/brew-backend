@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"github.com/gofiber/fiber/v2"
+	"github.com/mr-emerald-wolf/brew-backend/internal/db"
 	req "github.com/mr-emerald-wolf/brew-backend/internal/dto/request"
 	"github.com/mr-emerald-wolf/brew-backend/internal/services"
 	"github.com/mr-emerald-wolf/brew-backend/internal/utils"
@@ -48,9 +49,12 @@ func (ah *AuthHandler) Login(c *fiber.Ctx) error {
 
 func (ah *AuthHandler) Logout(c *fiber.Ctx) error {
 
-	email := c.Locals("email").(string)
+	user, ok := c.Locals("user").(db.User)
+	if !ok {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"status": false, "error": "failed to parse user"})
+	}
 
-	err := ah.service.LogoutUser(email)
+	err := ah.service.LogoutUser(user.Email)
 	if err != nil {
 		return err
 	}

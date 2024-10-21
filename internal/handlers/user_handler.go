@@ -4,7 +4,9 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/mr-emerald-wolf/brew-backend/internal/db"
 	req "github.com/mr-emerald-wolf/brew-backend/internal/dto/request"
+	res "github.com/mr-emerald-wolf/brew-backend/internal/dto/response"
 	"github.com/mr-emerald-wolf/brew-backend/internal/services"
 	"github.com/mr-emerald-wolf/brew-backend/internal/utils"
 )
@@ -80,7 +82,10 @@ func (uh *UserHandler) GetUser(c *fiber.Ctx) error {
 }
 
 func (uh *UserHandler) UpdateUser(c *fiber.Ctx) error {
-	uuid := c.Locals("user").(pgtype.UUID)
+	user, ok := c.Locals("user").(db.User)
+	if !ok {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"status": false, "error": "failed to parse user"})
+	}
 
 	var payload req.UserUpdateRequest
 	err := c.BodyParser(&payload)
@@ -96,7 +101,7 @@ func (uh *UserHandler) UpdateUser(c *fiber.Ctx) error {
 
 	}
 
-	response, err := uh.service.UpdateUser(uuid, payload)
+	response, err := uh.service.UpdateUser(user.Uuid, payload)
 
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(err)
@@ -107,9 +112,11 @@ func (uh *UserHandler) UpdateUser(c *fiber.Ctx) error {
 
 func (uh *UserHandler) DeleteUser(c *fiber.Ctx) error {
 
-	uuid := c.Locals("user").(pgtype.UUID)
-
-	err := uh.service.DeleteUser(uuid)
+	user, ok := c.Locals("user").(db.User)
+	if !ok {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"status": false, "error": "failed to parse user"})
+	}
+	err := uh.service.DeleteUser(user.Uuid)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(err)
 	}
@@ -119,12 +126,12 @@ func (uh *UserHandler) DeleteUser(c *fiber.Ctx) error {
 
 func (uh *UserHandler) Me(c *fiber.Ctx) error {
 
-	uuid := c.Locals("user").(pgtype.UUID)
-
-	user, err := uh.service.FindUser(uuid)
-	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"status": false, "error": err.Error()})
+	user, ok := c.Locals("user").(db.User)
+	if !ok {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"status": false, "error": "failed to parse user"})
 	}
 
-	return c.Status(fiber.StatusOK).JSON(user)
+	response := res.ToUserDTO(user)
+	
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{"status": true, "message": response})
 }
