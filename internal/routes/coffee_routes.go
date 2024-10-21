@@ -13,7 +13,7 @@ func CreateCoffeeRoutes(app *fiber.App) {
 	CoffeeHandler := handlers.NewCoffeeHandler(CoffeeService)
 	incomingRoutes := app.Group("/coffee")
 
-	incomingRoutes.Get("/", CoffeeHandler.GetAllCoffees)
+	incomingRoutes.Get("/all", CoffeeHandler.GetAllCoffees)
 	incomingRoutes.Get("/:uuid", CoffeeHandler.GetCoffee)
 
 	incomingRoutes.Use(middleware.Protected())

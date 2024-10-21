@@ -51,8 +51,7 @@ func (ch *CoffeeHandler) NewCoffee(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"status": false, "error": err.Error()})
 	}
 
-	c.Status(fiber.StatusCreated).JSON(fiber.Map{"status": true, "coffee": response})
-	return nil
+	return c.Status(fiber.StatusCreated).JSON(fiber.Map{"status": true, "coffee": response})
 }
 
 func (ch *CoffeeHandler) GetAllCoffees(c *fiber.Ctx) error {
@@ -96,7 +95,7 @@ func (ch *CoffeeHandler) UpdateCoffee(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"status": false, "error": err.Error()})
 	}
 
-	return c.Status(fiber.StatusOK).JSON(response)
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{"status": true, "coffee": response})
 }
 
 func (ch *CoffeeHandler) DeleteCoffee(c *fiber.Ctx) error {
