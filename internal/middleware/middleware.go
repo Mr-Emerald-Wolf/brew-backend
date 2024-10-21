@@ -1,36 +1,52 @@
 package middleware
 
 import (
-	"strings"
+	"context"
+	"database/sql"
+	"errors"
+	"os"
 
+	jwtware "github.com/gofiber/contrib/jwt"
 	"github.com/gofiber/fiber/v2"
-	"github.com/mr-emerald-wolf/brew-backend/internal/services"
+	"github.com/golang-jwt/jwt/v5"
+	"github.com/mr-emerald-wolf/brew-backend/database"
 )
 
-func VerifyUserToken(ctx *fiber.Ctx) error {
-	var token string
+// Middleware JWT function
+func Protected() fiber.Handler {
+	return jwtware.New(jwtware.Config{
+		SigningKey: jwtware.SigningKey{Key: []byte(os.Getenv("ACCESS_SECRET_KEY"))},
+	})
+}
 
-	authorizationHeader := ctx.Get("Authorization")
-	fields := strings.Fields(authorizationHeader)
-
-	if len(fields) > 1 && fields[0] == "Bearer" {
-		token = fields[1]
+func CheckUser(c *fiber.Ctx) error {
+	token := c.Locals("user").(*jwt.Token)
+	if token == nil {
+		return c.Status(fiber.StatusNotAcceptable).JSON(fiber.Map{
+			"error":  "Could Not Parse User JWT",
+			"status": false,
+		})
 	}
-
-	if token == "" {
-		return ctx.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"status": "fail", "message": "You are not logged in"})
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error":  "malformed jwt",
+			"status": false,
+			"data": map[string]bool{
+				"malformed": true,
+			},
+		})
 	}
-
-	res, err := services.ValidateToken(token, "SECRET")
-
+	email := claims["sub"].(string)
+	user, err := database.DB.GetUserByEmail(context.Background(), email)
 	if err != nil {
-		return ctx.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"status": "fail", "message": err.Error()})
+		if errors.Is(err, sql.ErrNoRows) {
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+				"message": "user does not exist",
+				"status":  false,
+			})
+		}
 	}
-
-	if res.Role != "USER" {
-		return ctx.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"status": "fail", "message": "Not a user"})
-	}
-
-	ctx.Set("currentUser", res.Id.String())
-	return ctx.Next()
+	c.Locals("user", user.Uuid)
+	return c.Next()
 }

@@ -15,9 +15,13 @@ func CreateUserRoutes(app *fiber.App) {
 	incomingRoutes := app.Group("/users")
 
 	incomingRoutes.Post("/", UserHandler.NewUser)
+
+	incomingRoutes.Use(middleware.Protected)
+	incomingRoutes.Use(middleware.CheckUser)
+	
 	incomingRoutes.Get("/all", UserHandler.GetAllUsers)
-	incomingRoutes.Get("/me", middleware.VerifyUserToken, UserHandler.Me)
+	incomingRoutes.Get("/me", UserHandler.Me)
+	incomingRoutes.Patch("/", UserHandler.UpdateUser)
+	incomingRoutes.Delete("/", UserHandler.DeleteUser)
 	incomingRoutes.Get("/:uuid", UserHandler.GetUser)
-	incomingRoutes.Patch("/:uuid", UserHandler.UpdateUser)
-	incomingRoutes.Delete("/:uuid", UserHandler.DeleteUser)
 }

@@ -1,8 +1,6 @@
 package handlers
 
 import (
-	"fmt"
-
 	"github.com/gofiber/fiber/v2"
 	req "github.com/mr-emerald-wolf/brew-backend/internal/dto/request"
 	"github.com/mr-emerald-wolf/brew-backend/internal/services"
@@ -74,7 +72,7 @@ func (uh *UserHandler) GetUser(c *fiber.Ctx) error {
 }
 
 func (uh *UserHandler) UpdateUser(c *fiber.Ctx) error {
-	uuid := c.Params("uuid")
+	uuid := c.Locals("user").(string)
 
 	var payload req.UserUpdateRequest
 	err := c.BodyParser(&payload)
@@ -101,7 +99,7 @@ func (uh *UserHandler) UpdateUser(c *fiber.Ctx) error {
 
 func (uh *UserHandler) DeleteUser(c *fiber.Ctx) error {
 
-	uuid := c.Params("uuid")
+	uuid := c.Locals("user").(string)
 
 	err := uh.service.DeleteUser(uuid)
 	if err != nil {
@@ -113,8 +111,7 @@ func (uh *UserHandler) DeleteUser(c *fiber.Ctx) error {
 
 func (uh *UserHandler) Me(c *fiber.Ctx) error {
 
-	uuid := c.GetRespHeader("currentUser")
-	fmt.Println(uuid)
+	uuid := c.Locals("user").(string)
 
 	user, err := uh.service.FindUser(uuid)
 	if err != nil {
