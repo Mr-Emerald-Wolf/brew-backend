@@ -7,6 +7,8 @@ package db
 
 import (
 	"context"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const createCoffee = `-- name: CreateCoffee :one
@@ -52,12 +54,48 @@ func (q *Queries) CreateCoffee(ctx context.Context, arg CreateCoffeeParams) (Cof
 
 const deleteCoffee = `-- name: DeleteCoffee :exec
 DELETE FROM coffee 
-WHERE id = $1
+WHERE uuid = $1
 `
 
-func (q *Queries) DeleteCoffee(ctx context.Context, id int32) error {
-	_, err := q.db.Exec(ctx, deleteCoffee, id)
+func (q *Queries) DeleteCoffee(ctx context.Context, uuid pgtype.UUID) error {
+	_, err := q.db.Exec(ctx, deleteCoffee, uuid)
 	return err
+}
+
+const getAllCoffees = `-- name: GetAllCoffees :many
+SELECT id, user_id, uuid, name, origin, roast, process, price, created_at, updated_at, deleted_at FROM coffee
+`
+
+func (q *Queries) GetAllCoffees(ctx context.Context) ([]Coffee, error) {
+	rows, err := q.db.Query(ctx, getAllCoffees)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Coffee
+	for rows.Next() {
+		var i Coffee
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserID,
+			&i.Uuid,
+			&i.Name,
+			&i.Origin,
+			&i.Roast,
+			&i.Process,
+			&i.Price,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.DeletedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const getCoffeeByID = `-- name: GetCoffeeByID :one
@@ -67,6 +105,30 @@ WHERE id = $1
 
 func (q *Queries) GetCoffeeByID(ctx context.Context, id int32) (Coffee, error) {
 	row := q.db.QueryRow(ctx, getCoffeeByID, id)
+	var i Coffee
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.Uuid,
+		&i.Name,
+		&i.Origin,
+		&i.Roast,
+		&i.Process,
+		&i.Price,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.DeletedAt,
+	)
+	return i, err
+}
+
+const getCoffeeByUUID = `-- name: GetCoffeeByUUID :one
+SELECT id, user_id, uuid, name, origin, roast, process, price, created_at, updated_at, deleted_at FROM coffee 
+WHERE uuid = $1
+`
+
+func (q *Queries) GetCoffeeByUUID(ctx context.Context, uuid pgtype.UUID) (Coffee, error) {
+	row := q.db.QueryRow(ctx, getCoffeeByUUID, uuid)
 	var i Coffee
 	err := row.Scan(
 		&i.ID,
@@ -121,10 +183,11 @@ func (q *Queries) GetCoffeesByUserID(ctx context.Context, userID int32) ([]Coffe
 	return items, nil
 }
 
-const updateCoffee = `-- name: UpdateCoffee :exec
+const updateCoffee = `-- name: UpdateCoffee :one
 UPDATE coffee 
 SET name = $1, origin = $2, roast = $3, process = $4, price = $5, updated_at = CURRENT_TIMESTAMP
-WHERE id = $6
+WHERE uuid = $6
+RETURNING id, user_id, uuid, name, origin, roast, process, price, created_at, updated_at, deleted_at
 `
 
 type UpdateCoffeeParams struct {
@@ -133,17 +196,31 @@ type UpdateCoffeeParams struct {
 	Roast   string
 	Process string
 	Price   int32
-	ID      int32
+	Uuid    pgtype.UUID
 }
 
-func (q *Queries) UpdateCoffee(ctx context.Context, arg UpdateCoffeeParams) error {
-	_, err := q.db.Exec(ctx, updateCoffee,
+func (q *Queries) UpdateCoffee(ctx context.Context, arg UpdateCoffeeParams) (Coffee, error) {
+	row := q.db.QueryRow(ctx, updateCoffee,
 		arg.Name,
 		arg.Origin,
 		arg.Roast,
 		arg.Process,
 		arg.Price,
-		arg.ID,
+		arg.Uuid,
 	)
-	return err
+	var i Coffee
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.Uuid,
+		&i.Name,
+		&i.Origin,
+		&i.Roast,
+		&i.Process,
+		&i.Price,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.DeletedAt,
+	)
+	return i, err
 }
