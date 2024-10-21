@@ -23,7 +23,7 @@ type CoffeeService struct {
 	repo *db.Queries
 }
 
-func NewCoffeeService(repo *db.Queries) *CoffeeService {
+func NewCoffeeService(repo *db.Queries) ICoffeeService {
 	return &CoffeeService{repo: repo}
 }
 

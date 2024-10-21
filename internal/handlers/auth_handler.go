@@ -17,13 +17,13 @@ type AuthHandler struct {
 	service services.IAuthServices
 }
 
-func NewAuthHandler(as services.IAuthServices) AuthHandler {
-	return AuthHandler{
+func NewAuthHandler(as services.IAuthServices) IAuthHandler {
+	return &AuthHandler{
 		service: as,
 	}
 }
 
-func (ah AuthHandler) Login(c *fiber.Ctx) error {
+func (ah *AuthHandler) Login(c *fiber.Ctx) error {
 	var payload req.AuthRequest
 	err := c.BodyParser(&payload)
 
@@ -46,7 +46,7 @@ func (ah AuthHandler) Login(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(response)
 }
 
-func (ah AuthHandler) Logout(c *fiber.Ctx) error {
+func (ah *AuthHandler) Logout(c *fiber.Ctx) error {
 
 	email := c.Locals("email").(string)
 
@@ -57,7 +57,7 @@ func (ah AuthHandler) Logout(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{"status": true, "message": "user logged out"})
 }
 
-func (ah AuthHandler) Refresh(c *fiber.Ctx) error {
+func (ah *AuthHandler) Refresh(c *fiber.Ctx) error {
 	var payload req.RefreshRequest
 	err := c.BodyParser(&payload)
 

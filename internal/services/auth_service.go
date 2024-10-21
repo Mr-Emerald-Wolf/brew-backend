@@ -33,13 +33,11 @@ type AuthService struct {
 	repo *db.Queries
 }
 
-func NewAuthService(repo *db.Queries) AuthService {
-	return AuthService{
-		repo: repo,
-	}
+func NewAuthService(repo *db.Queries) IAuthServices {
+	return &AuthService{repo: repo}
 }
 
-func (as AuthService) LoginUser(loginRequest req.AuthRequest) (*res.AuthResponse, error) {
+func (as *AuthService) LoginUser(loginRequest req.AuthRequest) (*res.AuthResponse, error) {
 	// Retrieve the user by email
 	user, err := as.repo.GetUserByEmail(context.Background(), loginRequest.Email)
 	if err != nil && errors.Is(err, pgx.ErrNoRows) {
@@ -72,7 +70,7 @@ func (as AuthService) LoginUser(loginRequest req.AuthRequest) (*res.AuthResponse
 	return &response, nil
 }
 
-func (as AuthService) RefreshToken(rf req.RefreshRequest) (*res.RefreshResponse, error) {
+func (as *AuthService) RefreshToken(rf req.RefreshRequest) (*res.RefreshResponse, error) {
 
 	token, err := jwt.Parse(rf.RefreshToken, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
@@ -110,7 +108,7 @@ func (as AuthService) RefreshToken(rf req.RefreshRequest) (*res.RefreshResponse,
 	return &response, nil
 }
 
-func (as AuthService) LogoutUser(email string) error {
+func (as *AuthService) LogoutUser(email string) error {
 	err := database.RedisClient.Delete(email)
 	if err != nil {
 		return err

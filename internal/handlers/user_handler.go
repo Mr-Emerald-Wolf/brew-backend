@@ -10,9 +10,9 @@ import (
 )
 
 type IUserHandler interface {
-	NewCustomer(*fiber.Ctx) error
-	GetAllCustomers(*fiber.Ctx) error
-	GetCustomer(*fiber.Ctx) error
+	NewUser(*fiber.Ctx) error
+	GetAllUsers(*fiber.Ctx) error
+	GetUser(*fiber.Ctx) error
 	UpdateUser(*fiber.Ctx) error
 	DeleteUser(*fiber.Ctx) error
 	Me(*fiber.Ctx) error
@@ -22,8 +22,8 @@ type UserHandler struct {
 	service services.IUserService
 }
 
-func NewUserHandler(us services.IUserService) UserHandler {
-	return UserHandler{
+func NewUserHandler(us services.IUserService) IUserHandler {
+	return &UserHandler{
 		service: us,
 	}
 }
