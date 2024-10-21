@@ -9,6 +9,7 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/jackc/pgx/v5"
+	"github.com/mr-emerald-wolf/brew-backend/database"
 	"github.com/mr-emerald-wolf/brew-backend/internal/db"
 	req "github.com/mr-emerald-wolf/brew-backend/internal/dto/request"
 	res "github.com/mr-emerald-wolf/brew-backend/internal/dto/response"
@@ -61,7 +62,11 @@ func (as AuthService) LoginUser(loginRequest req.AuthRequest) (*res.AuthResponse
 		return nil, err
 	}
 
-	// TODO: Store Refresh Token
+	// Store Refresh Token
+	err = database.RedisClient.Set(user.Email, refreshToken, time.Hour)
+	if err != nil {
+		return nil, err
+	}
 
 	response := res.AuthResponse{RefreshToken: refreshToken}
 	return &response, nil
@@ -86,6 +91,12 @@ func (as AuthService) RefreshToken(rf req.RefreshRequest) (*res.RefreshResponse,
 		return nil, fmt.Errorf("jwt error: could not parse claims")
 	}
 
+	// Check Refesh Token in Cache
+	_, err = database.RedisClient.Get(claims["sub"].(string))
+	if err != nil {
+		return nil, fmt.Errorf("refresh token not found")
+	}
+
 	// Create accessToken
 	accessToken, err := CreateToken(claims["sub"].(string), ACCESS_TOKEN)
 	if err != nil {
@@ -99,7 +110,11 @@ func (as AuthService) RefreshToken(rf req.RefreshRequest) (*res.RefreshResponse,
 	return &response, nil
 }
 
-func (as AuthService) LogoutUser(uuid string) error {
+func (as AuthService) LogoutUser(email string) error {
+	err := database.RedisClient.Delete(email)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 

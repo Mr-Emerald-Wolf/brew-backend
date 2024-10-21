@@ -4,6 +4,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/mr-emerald-wolf/brew-backend/database"
 	"github.com/mr-emerald-wolf/brew-backend/internal/handlers"
+	"github.com/mr-emerald-wolf/brew-backend/internal/middleware"
 	"github.com/mr-emerald-wolf/brew-backend/internal/services"
 )
 
@@ -15,5 +16,10 @@ func CreateAuthRoutes(app *fiber.App) {
 	incomingRoutes := app.Group("/auth")
 	incomingRoutes.Post("/login", AuthHandler.Login)
 	incomingRoutes.Post("/refresh", AuthHandler.Refresh)
+
+	incomingRoutes.Use(middleware.Protected())
+	incomingRoutes.Use(middleware.CheckUser)
+	
+	incomingRoutes.Post("/logout", AuthHandler.Logout)
 
 }

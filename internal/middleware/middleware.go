@@ -53,5 +53,7 @@ func CheckUser(c *fiber.Ctx) error {
 		})
 	}
 	c.Locals("user", user.Uuid)
+	c.Locals("email", user.Email)
+
 	return c.Next()
 }

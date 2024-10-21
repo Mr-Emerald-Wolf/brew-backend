@@ -44,7 +44,7 @@ func (uh *UserHandler) NewUser(c *fiber.Ctx) error {
 	response, err := uh.service.CreateUser(payload)
 
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"status": false, "error": err.Error()})
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"status": false, "error": err.Error()})
 	}
 
 	c.Status(fiber.StatusCreated).JSON(fiber.Map{"status": true, "user": response})
@@ -66,14 +66,14 @@ func (uh *UserHandler) GetUser(c *fiber.Ctx) error {
 	user_uuid := c.Params("uuid")
 	parsedUUID, err := uuid.Parse(user_uuid)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"status": "false", "error": err.Error()})
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"status": false, "error": err.Error()})
 	}
 
 	pgUUID := pgtype.UUID{Bytes: parsedUUID, Valid: true}
 
 	user, err := uh.service.FindUser(pgUUID)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"status": "false", "error": err.Error()})
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"status": false, "error": err.Error()})
 	}
 
 	return c.Status(fiber.StatusOK).JSON(user)
@@ -123,7 +123,7 @@ func (uh *UserHandler) Me(c *fiber.Ctx) error {
 
 	user, err := uh.service.FindUser(uuid)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"status": "false", "error": err.Error()})
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"status": false, "error": err.Error()})
 	}
 
 	return c.Status(fiber.StatusOK).JSON(user)
